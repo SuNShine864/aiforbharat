@@ -10,7 +10,9 @@ if not NVIDIA_API_KEY:
     raise ValueError("NVIDIA_API_KEY not set in environment variables")
 
 NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL_NAME = "minimaxai/minimax-m2.5"
+MODEL_NAME = os.getenv("MODEL_NAME")
+if not MODEL_NAME:
+    raise ValueError("MODEL_NAME not set in environment variables")
 
 
 VERDICT_SYSTEM = """

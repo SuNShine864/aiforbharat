@@ -14,6 +14,24 @@ MODEL_NAME = os.getenv("MODEL_NAME")
 if not MODEL_NAME:
     raise ValueError("MODEL_NAME not set in environment variables")
 
+import re
+
+def _extract_json(raw_text: str):
+    try:
+        # Case 1: ```json ... ```
+        match = re.search(r'```json\s*(\{.*?\})\s*```', raw_text, re.DOTALL)
+        if match:
+            return json.loads(match.group(1))
+
+        # Case 2: any { ... }
+        match = re.search(r'(\{.*\})', raw_text, re.DOTALL)
+        if match:
+            return json.loads(match.group(1))
+
+    except Exception as e:
+        print("Still failed:", e)
+
+    return None
 
 VERDICT_SYSTEM = """
 You are a government procurement evaluation officer.
@@ -30,7 +48,6 @@ Return ONLY valid JSON:
   "value": "₹8.2 Cr (avg)",
   "document_ref": "CA_Cert.pdf",
   "page": null,
-  "block": 55,
   "reason": "..."
 }
 
@@ -47,6 +64,13 @@ Verdict rules:
 -Always compare value_found against threshold explicitly before assigning verdict.
 
 NEVER silently disqualify.
+
+STRICT OUTPUT RULES:
+- Output MUST be valid JSON only
+- Do NOT include explanations
+- Do NOT include markdown (no ```json)
+- Do NOT include text before or after JSON
+- Output must start with { and end with }
 """
 
 
@@ -64,7 +88,8 @@ def _call_nvidia(messages):
             "model": MODEL_NAME,
             "messages": messages,
             "temperature": 0,
-            "max_tokens": 1024
+            "max_tokens": 1024,
+            "top_p":0.1
         }
     )
 
@@ -95,11 +120,11 @@ def _assign_verdict_for_criterion(criterion: dict, evidence: dict) -> dict:
     if confidence in ["low","not_found"]:
         return {
             "criterion_id": criterion["id"],
+            "description":criterion["description"],
             "verdict": "MANUAL_REVIEW",
             "value": None,
             "documentRef": None,
             "page": None,
-            "block": None,
             "reason": f"No document found for: {criterion['description']}"
         }
 
@@ -115,7 +140,7 @@ Mandatory: {criterion.get('mandatory', True)}
 Evidence:
 Value found: {evidence.get('value_found')}
 Document: {evidence.get('document_reference')}
-Location: Page: {evidence.get('page')},Block: {evidence.get('block')}
+Location: Page: {evidence.get('page')}
 Confidence: {confidence}
 Excerpt: {evidence.get('raw_excerpt', '')[:300]}
 Notes: {evidence.get('notes', '')}
@@ -124,45 +149,41 @@ Notes: {evidence.get('notes', '')}
     ]
 
     raw = _call_nvidia(messages)
-
     if not raw:
         return {
             "criterion_id": criterion["id"],
+            "description":criterion["description"],
             "verdict": "MANUAL_REVIEW",
             "value": None,
             "documentRef": None,
             "page": None,
-            "block": None,
             "reason": "LLM call failed"
         }
+    print("\nRAW LLM OUTPUT:\n", raw)
 
     # Clean markdown
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+    
+    result = _extract_json(raw)
 
-    try:
-        result = json.loads(raw)
-    except Exception:
+    if not result:
         print("JSON parse failed:", raw)
         return {
             "criterion_id": criterion["id"],
+            "description":criterion["description"],
             "verdict": "MANUAL_REVIEW",
             "value": None,
             "documentRef": None,
             "page": None,
-            "block": None,
             "reason": "Parsing failed — manual review required"
         }
 
     return {
         "criterion_id": criterion["id"],
+        "description":criterion["description"],
         "verdict": result.get("verdict", "MANUAL_REVIEW"),
         "value": result.get("value"),
         "documentRef": result.get("document_ref"),
         "page": result.get("page"),
-        "block": result.get("block"),
         "reason": result.get("reason", "")
     }
 

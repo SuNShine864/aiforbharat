@@ -148,5 +148,7 @@ Text:
         c.setdefault("mandatory", True)
         c.setdefault("threshold", None)
         c.setdefault("raw", "")
-
+    if not all_criteria or len(all_criteria) == 0:
+        raise ValueError("Criteria extraction failed or returned empty")
+    print("llm api generated",all_criteria)
     return all_criteria

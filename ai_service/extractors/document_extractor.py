@@ -64,6 +64,7 @@ def _extract_pdf(path: str):
         })
 
     doc.close()
+    print("LLM API GENERATED",data)
     return data
 
 def _extract_docx(path: str) -> str:

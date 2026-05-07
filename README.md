@@ -17,9 +17,9 @@ The system allows users to:
 # Project Architecture
 
 
-Frontend (React/Vite)
+Frontend (html,css,js)
         ↓
-Backend API (Node.js/Express)
+Backend API (Python)
         ↓
 AI Service (FastAPI + RAG Pipeline)
         ↓

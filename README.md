@@ -99,6 +99,9 @@ Planned Upgrade:
 
 # Folder Structure
 
+## Folder Structure
+
+```text
 project-root/
 │
 ├── frontend/
@@ -145,10 +148,12 @@ project-root/
 │   ├── extractors/
 │   │   ├── criteria_extractor.py
 │   │   └── document_extractor.py
+│   ├── rag_pipeline.py
 │   ├── data/
 │   └── requirements.txt
-│   |__ rag_pipeline.py
+│
 └── README.md
+```
 
 # Environment Variables
 
@@ -156,6 +161,7 @@ Create a `.env` file in the required services.
 
 ## AI Service `.env`
 
+```
 NVIDIA_API_KEY=your_nvidia_api_key
 MODEL_NAME=your_model_name
 GEMINI_API_KEY=your_gemini_api_key
@@ -166,6 +172,7 @@ NVIDIA_EMBEDDING_MODEL=your_embedding_model
 
 PINECONE_INDEX_NAME=your_pinecone_index
 PINECONE_API_KEY=your_pinecone_api_key
+```
 
 # Installation
 

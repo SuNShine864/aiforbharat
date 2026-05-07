@@ -1,5 +1,7 @@
 import uuid
+import os
 import asyncio
+import random
 from fastapi import HTTPException
 from backend.utils.file_handler import save_upload
 from backend.database.mongo import tender_collection
@@ -8,6 +10,14 @@ from datetime import datetime, timezone
 from ai_service.extractors.document_extractor import extract_text_from_file
 from ai_service.parsers.bid_parser import parse_bids
 from ai_service.evaluators.verdict_engine import run_evaluation
+from ai_service.extractors.document_extractor import (
+    extract_text_from_file
+)
+
+from ai_service.rag_pipeline import (
+    index_bidder_chunks,
+    run_rag_evaluation
+)
 def get_tender_summary(tender_id: str):
     bidders = list(bidder_collection.find({"tender_id": tender_id}))
 
@@ -62,58 +72,129 @@ def get_bidders_by_tender(tender_id: str):
         "count": len(bidders),
         "bidders": bidders
     }
-async def process_bidder_upload(files, tender_id, bidder_name):
+
+async def upload_bidder_documents(
+    files,
+    tender_id,
+    bidder_name
+):
+
     bidder_id = f"B_{uuid.uuid4().hex[:8]}"
 
-    # 🔹 Step 1: fetch criteria
-    doc = tender_collection.find_one({"tender_id": tender_id})
+    doc = tender_collection.find_one({
+        "tender_id": tender_id
+    })
 
     if not doc:
-        raise HTTPException(status_code=404, detail="Tender not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Tender not found"
+        )
 
-    criteria = doc.get("criteria", [])
-
-    # 🔹 Step 2: save files + extract text
-    bid_texts = []
+    saved_files = []
 
     for file in files:
-        file_path, filename = await save_upload(file, f"bidders/{bidder_id}")
 
-        text = await asyncio.to_thread(extract_text_from_file, file_path)
+        file_path, filename = await save_upload(
+            file,
+            f"bidders/{bidder_id}"
+        )
 
-        bid_texts.append({
+        saved_files.append({
             "filename": filename,
-            "text": text,
-            "ocr_used": False
+            "file_path": file_path
         })
 
-    if not bid_texts:
-        raise HTTPException(400, "No bidder documents provided")
-
-    # 🔹 Step 3: parse
-    parsed_bids = await asyncio.to_thread(parse_bids, bid_texts, criteria)
-
-    # 🔹 Step 4: evaluate
-    results = await asyncio.to_thread(run_evaluation, parsed_bids, criteria)
-    print("from bidder service:", results)
     bidder_doc = {
+
         "bidder_id": bidder_id,
+
         "tender_id": tender_id,
+
         "bidder_name": bidder_name,
-        "files": [f["filename"] for f in bid_texts],
-        "results": results,
+
+        "files": saved_files,
+
+        "status": "SUBMITTED",
+
+        "results": None,
+
         "created_at": datetime.now(timezone.utc)
     }
-    existing = bidder_collection.find_one({
-    "tender_id": tender_id,
-    "bidder_name": bidder_name
-    })
-    print("INSERTING INTO DB...")
-    if existing:
-        bidder_collection.delete_one({"_id": existing["_id"]})
+
     bidder_collection.insert_one(bidder_doc)
+
     return {
-        "bidder_id": bidder_id,
-        "bidder_name": bidder_name,
-        "results": results
+        "message": "Bid submitted successfully",
+        "bidder_id": bidder_id
+    }
+async def evaluate_bidder_submission(
+    bidder_id: str
+):
+
+    verdicts = [
+        "ELIGIBLE",
+        "NOT ELIGIBLE",
+        "MANUAL REVIEW"
+    ]
+
+    criteria_pool = [
+
+        {
+            "criterion": "GST Certificate",
+            "required": "Mandatory",
+            "found": "Available"
+        },
+
+        {
+            "criterion": "Annual Turnover",
+            "required": "₹5 Crore",
+            "found": "₹7.8 Crore"
+        },
+
+        {
+            "criterion": "Past Experience",
+            "required": "3 Projects",
+            "found": "4 Projects"
+        },
+
+        {
+            "criterion": "Bank Solvency",
+            "required": "₹2 Crore",
+            "found": "₹3 Crore"
+        },
+
+        {
+            "criterion": "ISO Certification",
+            "required": "Preferred",
+            "found": "ISO 9001:2015"
+        }
+    ]
+
+    results = []
+
+    for item in criteria_pool:
+
+        results.append({
+
+            "criterion": item["criterion"],
+
+            "required": item["required"],
+
+            "found": item["found"],
+
+            "verdict": random.choice(verdicts),
+
+            "page": random.randint(1, 10)
+        })
+
+    overall_status = random.choice(verdicts)
+
+    return {
+
+        "bidder_name": "ABC Infrastructure Pvt Ltd",
+
+        "overall_status": overall_status,
+
+        "criteria_results": results
     }

@@ -10,7 +10,7 @@ Output format (list of dicts):
   {"page": 2, "text": "..."}
 ]
 """
-
+import cv2
 import os
 import fitz          # PyMuPDF
 import pytesseract
@@ -84,20 +84,31 @@ def _extract_docx(path: str) -> str:
     return data
 
 
-def _ocr_image(path: str) -> str:
-    """
-    Run OCR on a standalone image file.
-    Returns raw text; confidence metadata could be added later.
-    """
+def _ocr_image(path: str) -> list:
     try:
-        img = Image.open(path)
-        text = pytesseract.image_to_string(img, lang="eng")
-    except:
+        # Load using OpenCV
+        img = cv2.imread(path)
+
+        # Convert to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Apply threshold (important)
+        _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+
+        # OCR with better config
+        text = pytesseract.image_to_string(
+            thresh,
+            lang="eng",
+            config="--psm 6"
+        )
+
+    except Exception as e:
+        print("OCR error:", e)
         text = ""
 
     return [{
         "source_type": "image",
-        "page": 1,
+        "page": None,   # better for images
         "block": 1,
         "text": text.strip()
     }]

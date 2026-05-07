@@ -7,10 +7,10 @@ from parsers.bid_parser             import parse_bids
 from evaluators.verdict_engine import run_evaluation
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 bidder_file_path = os.path.join(
-    BASE_DIR, "data", "samples", "sample_bidder.pdf"
+    BASE_DIR, "data", "samples" ,"sample_bidder.pdf"
 )
 tender_file_path = os.path.join(
-    BASE_DIR, "data", "samples", "sample.pdf"
+    BASE_DIR, "data", "samples","sample.pdf"
 )
 
 print("\n[STEP 1] Extracting tender text...")

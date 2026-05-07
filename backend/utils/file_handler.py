@@ -41,6 +41,7 @@ async def save_upload(file: UploadFile, subfolder: str) -> tuple[str, str]:
     dest_path   = os.path.join(dest_dir, unique_name)
 
     with open(dest_path, "wb") as f:
+        await file.seek(0)
         content = await file.read()
         f.write(content)
 

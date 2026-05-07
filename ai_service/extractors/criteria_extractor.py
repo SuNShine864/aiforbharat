@@ -2,7 +2,7 @@
 criteria_extractor.py (NVIDIA API version)
 Uses NVIDIA hosted LLM (e.g., Llama 3, Mixtral)
 """
-
+import re
 import json
 import requests
 import os
@@ -26,8 +26,9 @@ You are an expert government procurement analyst.
 
 Extract ALL eligibility criteria from the tender text.
 
-Return ONLY a valid JSON array. No explanation.
-
+Return ONLY a valid JSON . No explanation.
+Do NOT include any explanation, text, or comments.(Must and super important, never unfollow this)
+If no criteria found, return [] only.
 Each item MUST have:
 {
   "id": "C001",
@@ -39,7 +40,15 @@ Each item MUST have:
   "page": 5,
   "block": 1
 }
+INCLUDE:
+- financial requirements (turnover, solvency)
+- technical requirements (experience, projects, capacity)
+- compliance requirements (GST, PAN, licenses)
 
+EXCLUDE:
+- instructions (register, upload, login, portal usage)
+- bidding process steps
+- website or system instructions
 Rules:
 - Financial: turnover, net worth, bank solvency
 - Technical: experience, projects, manpower
@@ -51,7 +60,51 @@ Rules:
 - id's should be sequential eg C001, C002, C003, C004...not random
 -Normalise numbers "I5 Crore" → ₹5 Crore = 5,00,00,000 
 """
+def is_valid_criterion(desc):
+    desc = desc.lower()
 
+    junk_keywords = [
+        "register", "login", "website", "portal",
+        "upload", "download", "click", "form",
+        "password", "email", "submit"
+    ]
+
+    return not any(k in desc for k in junk_keywords)
+def extract_json(text):
+    try:
+        # try direct
+        return json.loads(text)
+    except:
+        pass
+
+    # try extracting JSON array
+    match = re.search(r'\[.*\]', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except:
+            return []
+
+    return []
+def chunk_blocks(blocks, max_chars=4000):
+    chunks = []
+    current = []
+    length = 0
+
+    for b in blocks:
+        text = b.get("text", "")
+        if length + len(text) > max_chars and current:
+            chunks.append(current)
+            current = []
+            length = 0
+
+        current.append(b)
+        length += len(text)
+
+    if current:
+        chunks.append(current)
+
+    return chunks
 def deduplicate(criteria_list):
     seen = set()
     unique = []
@@ -66,15 +119,11 @@ def deduplicate(criteria_list):
 
 def extract_criteria(blocks: list) -> list:
     all_criteria = []
+    chunks = chunk_blocks(blocks)
 
-    for item in blocks:
-        text = item.get("text", "").strip()
-        if not text:
-            continue
-
-        page = item.get("page")
-        block_id = item.get("block")
-
+    for chunk in chunks:
+        text = "\n".join([b.get("text", "") for b in chunk])
+        page = chunk[0].get("page")
         response = requests.post(
             NVIDIA_URL,
             headers={
@@ -88,12 +137,12 @@ def extract_criteria(blocks: list) -> list:
                     {
                         "role": "user",
                         "content": f"""
-Source Info:
-page={page}, block={block_id}
+                        Source Info:
+                        page={page}
 
-Text:
-{text}
-"""
+                        Text:
+                        {text}
+                        """
                     }
                 ],
                 "temperature": 0,
@@ -124,12 +173,11 @@ Text:
                 result = result[4:]
 
         try:
-            criteria = json.loads(result)
-
+            criteria = extract_json(result)
+            criteria = [c for c in criteria if is_valid_criterion(c.get("description", ""))]
             # attach source info to each criterion
             for c in criteria:
                 c["page"] = page
-                c["block"] = block_id
 
             all_criteria.extend(criteria)
 

@@ -80,7 +80,7 @@ temp/
 htmlcov/
 .pytest_cache/
 outputs/
-
+backend/uploads/
 
 # Misc
 

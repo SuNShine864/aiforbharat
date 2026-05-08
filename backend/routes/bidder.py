@@ -1,11 +1,11 @@
 from fastapi import APIRouter, UploadFile, File, Form,HTTPException
 from typing import Annotated,List
 import os
-from ai_service.rag_pipeline import (
+from backend.ai_service.rag_pipeline import (
     index_bidder_chunks
 )
 
-from ai_service.extractors.document_extractor import (
+from backend.ai_service.extractors.document_extractor import (
     extract_text_from_file
 )
 from backend.services.bidder_service import (

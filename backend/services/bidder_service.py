@@ -7,14 +7,13 @@ from backend.utils.file_handler import save_upload
 from backend.database.mongo import tender_collection
 from backend.database.mongo import bidder_collection
 from datetime import datetime, timezone
-from ai_service.extractors.document_extractor import extract_text_from_file
-from ai_service.parsers.bid_parser import parse_bids
-from ai_service.evaluators.verdict_engine import run_evaluation
-from ai_service.extractors.document_extractor import (
+from backend.ai_service.extractors.document_extractor import extract_text_from_file
+from backend.ai_service.parsers.bid_parser import parse_bids
+from backend.ai_service.evaluators.verdict_engine import run_evaluation
+from backend.ai_service.extractors.document_extractor import (
     extract_text_from_file
 )
-
-from ai_service.rag_pipeline import (
+from backend.ai_service.rag_pipeline import (
     index_bidder_chunks,
     run_rag_evaluation
 )

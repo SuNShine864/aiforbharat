@@ -141,17 +141,15 @@ project-root/
 │   │   └── file_handler.py
 │   ├── main.py
 │   └── requirements.txt
-│
-├── ai_service/
-│   ├── evaluators/
-│   │   └── verdict_engine.py
-│   ├── extractors/
-│   │   ├── criteria_extractor.py
-│   │   └── document_extractor.py
-│   ├── rag_pipeline.py
-│   ├── data/
-│   └── requirements.txt
-│
+│   |__ ai_service/
+│       ├── evaluators/
+│       │   └── verdict_engine.py
+│       ├── extractors/
+│       │   ├── criteria_extractor.py
+│       │   └── document_extractor.py
+│       ├── rag_pipeline.py
+│       ├── data/
+│       └── requirements.txt
 └── README.md
 ```
 

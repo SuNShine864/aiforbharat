@@ -4,7 +4,7 @@ async function openSubmissions(tenderId) {
 
     const res = await fetch(
 
-        `http://127.0.0.1:8000/bidder/tender/${tenderId}`
+        `https://aiforbharat-backend.onrender.com/bidder/tender/${tenderId}`
     );
 
     const data = await res.json();
@@ -69,7 +69,7 @@ async function renderTenders() {
     try {
 
         const res = await fetch(
-            "http://127.0.0.1:8000/tender"
+            "https://aiforbharat-backend.onrender.com/tender"
         );
 
         const tenders = await res.json();
@@ -178,7 +178,7 @@ tbody.innerHTML = `
     try {
 
         const res = await fetch(
-            "http://127.0.0.1:8000/tender/upload",
+            "https://aiforbharat-backend.onrender.com/tender/upload",
             {
                 method: "POST",
                 body: formData

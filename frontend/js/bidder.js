@@ -19,7 +19,7 @@ async function evaluateBidder(
 
     const response = await fetch(
 
-        `http://127.0.0.1:8000/bidder/evaluate/${bidderId}`,
+        `https://aiforbharat-backend.onrender.com/bidder/evaluate/${bidderId}`,
 
         {
             method: "POST"
@@ -44,7 +44,7 @@ async function evaluateBidder(
 async function loadSubmissions() {
 
     const response = await fetch(
-        "http://127.0.0.1:8000/bidder/submissions"
+        "https://aiforbharat-backend.onrender.com/bidder/submissions"
     );
 
     const data = await response.json();
@@ -94,8 +94,7 @@ async function viewReport(
     navigate("bidder-report-page");
 
     const res = await fetch(
-
-        `http://127.0.0.1:8000/bidder/${bidderId}`
+        `https://aiforbharat-backend.onrender.com/bidder/${bidderId}`
     );
 
     const bidder = await res.json();
@@ -140,7 +139,7 @@ function downloadTender(tenderId) {
 
     window.open(
 
-        `http://127.0.0.1:8000/tender/download/${tenderId}`,
+        `https://aiforbharat-backend.onrender.com/tender/download/${tenderId}`,
 
         "_blank"
     );
@@ -162,7 +161,7 @@ async function renderBidderTenders() {
     try {
 
         const res = await fetch(
-            "http://127.0.0.1:8000/tender"
+            "https://aiforbharat-backend.onrender.com/tender"
         );
 
         const tenders = await res.json();
@@ -246,7 +245,7 @@ async function submitBid() {
     try {
 
         const res = await fetch(
-            "http://127.0.0.1:8000/bidder/upload",
+            "https://aiforbharat-backend.onrender.com/bidder/upload",
             {
                 method: "POST",
                 body: formData

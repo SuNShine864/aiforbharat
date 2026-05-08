@@ -1,9 +1,9 @@
 from fastapi import APIRouter, UploadFile, File,Form
-from backend.services.tender_service import process_tender_upload
-from backend.database.mongo import tender_collection
+from services.tender_service import process_tender_upload
+from database.mongo import tender_collection
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
-from backend.database.mongo import (
+from database.mongo import (
     tender_collection,
     bidder_collection
 )
@@ -23,12 +23,12 @@ async def upload_tender(
 
     return result
 
-from backend.services.bidder_service import get_bidders_by_tender
+from services.bidder_service import get_bidders_by_tender
 @router.get("/{tender_id}/bidders")
 def get_bidders(tender_id: str):
     return get_bidders_by_tender(tender_id)
 
-from backend.services.bidder_service import get_tender_summary
+from services.bidder_service import get_tender_summary
 @router.get("/{tender_id}/summary")
 def tender_summary(tender_id: str):
     return get_tender_summary(tender_id)

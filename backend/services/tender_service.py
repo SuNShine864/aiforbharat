@@ -3,11 +3,11 @@ import asyncio
 
 from fastapi import HTTPException
 
-from backend.utils.file_handler import save_upload
-from backend.database.mongo import tender_collection
+from utils.file_handler import save_upload
+from database.mongo import tender_collection
 
-from backend.ai_service.extractors.document_extractor import extract_text_from_file
-from backend.ai_service.extractors.criteria_extractor import extract_criteria
+from ai_service.extractors.document_extractor import extract_text_from_file
+from ai_service.extractors.criteria_extractor import extract_criteria
 
 from datetime import datetime, timezone
 

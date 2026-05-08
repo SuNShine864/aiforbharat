@@ -1,18 +1,18 @@
 from fastapi import APIRouter, UploadFile, File, Form,HTTPException
 from typing import Annotated,List
 import os
-from backend.ai_service.rag_pipeline import (
+from ai_service.rag_pipeline import (
     index_bidder_chunks
 )
 
-from backend.ai_service.extractors.document_extractor import (
+from ai_service.extractors.document_extractor import (
     extract_text_from_file
 )
-from backend.services.bidder_service import (
+from services.bidder_service import (
     get_bidders_by_tender
 )
-from backend.database.mongo import bidder_collection
-from backend.services.bidder_service import (
+from database.mongo import bidder_collection
+from services.bidder_service import (
     upload_bidder_documents,
     evaluate_bidder_submission,
     get_bidder_by_id,

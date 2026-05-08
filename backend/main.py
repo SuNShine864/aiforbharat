@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
-from backend.utils.file_handler import save_upload
-from backend.routes import tender
-from backend.routes import bidder
+from utils.file_handler import save_upload
+from routes import tender
+from routes import bidder
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 app.add_middleware(
